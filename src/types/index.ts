@@ -1,5 +1,5 @@
 export type PayType = 'card' | 'mobile'
-export type OfferingStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELED'
+export type OfferingStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
 export interface Offering {
   id: number

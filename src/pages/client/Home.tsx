@@ -13,35 +13,52 @@ type FormData = {
   jumin1: string
   jumin2: string
   email: string
-  tithe: number
-  thanks: number
-  building: number
-  mission: number
-  relief: number
+  tithe: string
+  thanks: string
+  building: string
+  mission: string
+  relief: string
 }
 
-const OFFERING_FIELDS = [
-  { key: 'tithe', label: '십일조' },
-  { key: 'thanks', label: '감사' },
-  { key: 'building', label: '건축' },
-  { key: 'mission', label: '선교' },
-  { key: 'relief', label: '구제' },
-] as const
+const ssnCheck = (ssn1: string, ssn2: string) => {
+  const ssn = `${ssn1}${ssn2}`
+  if (ssn.length !== 13 || !/^\d{13}$/.test(ssn)) return false
+  let checkSum = 0
+  for (let i = 0; i < 12; i++) checkSum += parseInt(ssn[i]) * ((i % 8) + 2)
+  return (11 - (checkSum % 11)) % 10 === parseInt(ssn[12])
+}
 
 export default function Home() {
   const [loading, setLoading] = useState(false)
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
-    defaultValues: { pay_type: 'card', tithe: 0, thanks: 0, building: 0, mission: 0, relief: 0 },
+  const { register, handleSubmit, getValues, setValue, formState: { errors } } = useForm<FormData>({
+    defaultValues: { pay_type: 'card', tithe: '', thanks: '', building: '', mission: '', relief: '' },
   })
 
-  const values = watch(['tithe', 'thanks', 'building', 'mission', 'relief'])
-  const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0)
+  const calcTotal = () => {
+    const { tithe, thanks, building, mission, relief } = getValues()
+    return [tithe, thanks, building, mission, relief].reduce((sum, v) => sum + (parseInt(v) || 0), 0)
+  }
+
+  const handleAmountBlur = () => {
+    setValue('tithe', getValues('tithe'))
+    const total = calcTotal()
+    setValue('relief', getValues('relief'))
+    return total
+  }
 
   const onSubmit = async (data: FormData) => {
+    const total = calcTotal()
+
+    if (!ssnCheck(data.jumin1, data.jumin2)) {
+      alert('주민번호를 정확히 입력해주세요.')
+      return
+    }
+
     if (total <= 0) {
       alert('헌금 금액을 1원 이상 입력해 주세요.')
       return
     }
+
     setLoading(true)
     try {
       const order_id = generateOrderId()
@@ -51,11 +68,11 @@ export default function Home() {
         jumin1: data.jumin1,
         jumin2: data.jumin2,
         email: data.email || undefined,
-        tithe: Number(data.tithe) || 0,
-        thanks: Number(data.thanks) || 0,
-        building: Number(data.building) || 0,
-        mission: Number(data.mission) || 0,
-        relief: Number(data.relief) || 0,
+        tithe: parseInt(data.tithe) || 0,
+        thanks: parseInt(data.thanks) || 0,
+        building: parseInt(data.building) || 0,
+        mission: parseInt(data.mission) || 0,
+        relief: parseInt(data.relief) || 0,
         order_id,
       }
       await createOffering(body)
@@ -64,7 +81,7 @@ export default function Home() {
       const paymentParams = {
         amount: total,
         orderId: order_id,
-        orderName: `JCC 헌금 (${data.name})`,
+        orderName: '예수중심교회 인터넷헌금',
         customerName: data.name,
         customerEmail: data.email || undefined,
         successUrl: `${window.location.origin}/success`,
@@ -75,7 +92,13 @@ export default function Home() {
       } else {
         await tossPayments.requestPayment('휴대폰', paymentParams)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code ?? ''
+      // 사용자가 직접 취소한 경우 알림 없이 처리
+      if (code === 'PAY_PROCESS_CANCELED' || code === 'PAYMENT_WINDOW_IS_NOT_OPENED') {
+        setLoading(false)
+        return
+      }
       console.error(err)
       alert('결제 요청 중 오류가 발생했습니다.')
     } finally {
@@ -84,114 +107,109 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">헌금 납부</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {/* 결제수단 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">결제수단</label>
-          <div className="flex gap-3">
-            {(['card', 'mobile'] as const).map((type) => (
-              <label key={type} className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" value={type} {...register('pay_type')} className="accent-blue-600" />
-                <span className="text-sm text-gray-700">{type === 'card' ? '카드' : '휴대폰'}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* 성명 */}
+      <div className="form-group required">
+        <label>이름</label>
+        <input
+          type="text"
+          {...register('name', { required: '이름을 입력해주세요.' })}
+          placeholder="성과 이름을 빈칸 없이 붙여 쓰세요"
+        />
+        {errors.name && <p className="error-message">{errors.name.message}</p>}
+      </div>
 
-        {/* 성명 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">성명 <span className="text-red-500">*</span></label>
+      {/* 주민번호 */}
+      <div className="form-flex">
+        <div className="form-group required">
+          <label>주민번호(연말정산용)</label>
           <input
             type="text"
-            {...register('name', { required: '성명을 입력하세요' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="홍길동"
+            maxLength={6}
+            {...register('jumin1', {
+              required: '주민번호를 입력해주세요.',
+              pattern: { value: /^\d{6}$/, message: '숫자 6자리를 입력하세요' },
+            })}
           />
-          {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
-        </div>
-
-        {/* 주민번호 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">주민번호 <span className="text-red-500">*</span></label>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              maxLength={6}
-              {...register('jumin1', {
-                required: '앞자리를 입력하세요',
-                pattern: { value: /^\d{6}$/, message: '숫자 6자리를 입력하세요' },
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="앞 6자리"
-            />
-            <span className="text-gray-400">-</span>
-            <input
-              type="password"
-              maxLength={7}
-              {...register('jumin2', {
-                required: '뒷자리를 입력하세요',
-                pattern: { value: /^\d{7}$/, message: '숫자 7자리를 입력하세요' },
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="뒤 7자리"
-            />
-          </div>
           {(errors.jumin1 || errors.jumin2) && (
-            <p className="mt-1 text-xs text-red-500">{errors.jumin1?.message || errors.jumin2?.message}</p>
+            <p className="error-message">{errors.jumin1?.message || errors.jumin2?.message}</p>
           )}
         </div>
-
-        {/* 이메일 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">이메일 <span className="text-gray-400 font-normal">(선택)</span></label>
+        <div className="divider">-</div>
+        <div className="form-group" style={{ marginTop: '0.56em' }}>
+          <label>&nbsp;</label>
           <input
-            type="email"
-            {...register('email', {
-              pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '올바른 이메일 형식을 입력하세요' },
+            type="password"
+            maxLength={7}
+            {...register('jumin2', {
+              required: '주민번호를 입력해주세요.',
+              pattern: { value: /^\d{7}$/, message: '숫자 7자리를 입력하세요' },
             })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="example@email.com"
           />
-          {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
         </div>
+      </div>
 
-        {/* 헌금 항목 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">헌금 항목 (원)</label>
-          <div className="space-y-2">
-            {OFFERING_FIELDS.map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-3">
-                <span className="w-12 text-sm text-gray-600 shrink-0">{label}</span>
-                <input
-                  type="number"
-                  min={0}
-                  {...register(key, { min: 0 })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
-                  placeholder="0"
-                />
-              </div>
-            ))}
+      {/* 이메일 */}
+      <div className="form-group">
+        <label>이메일</label>
+        <input
+          type="text"
+          {...register('email', {
+            pattern: { value: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/, message: '이메일을 정확히 입력해주세요.' },
+          })}
+          placeholder="선택사항입니다."
+        />
+        {errors.email && <p className="error-message">{errors.email.message}</p>}
+      </div>
+
+      {/* 헌금 항목 1행 */}
+      <div className="form-flex">
+        {(['tithe', 'thanks', 'building'] as const).map((key, i) => (
+          <div className="form-group" key={key}>
+            <label>{['십일조', '감사헌금', '건축헌금'][i]}</label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              {...register(key, { min: 0 })}
+              onBlur={handleAmountBlur}
+              style={{ textAlign: 'right' }}
+            />
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* 합계 */}
-        <div className="flex justify-between items-center py-3 border-t border-gray-200">
-          <span className="text-sm font-medium text-gray-700">합계</span>
-          <span className="text-lg font-semibold text-blue-600">
-            {new Intl.NumberFormat('ko-KR').format(total)}원
-          </span>
+      {/* 헌금 항목 2행 + 총계 */}
+      <div className="form-flex">
+        {(['mission', 'relief'] as const).map((key, i) => (
+          <div className="form-group" key={key}>
+            <label>{['선교헌금', '153구제헌금'][i]}</label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              {...register(key, { min: 0 })}
+              onBlur={handleAmountBlur}
+              style={{ textAlign: 'right' }}
+            />
+          </div>
+        ))}
+        <div className="form-group required">
+          <label>총계</label>
+          <input
+            type="number"
+            value={calcTotal()}
+            readOnly
+            style={{ textAlign: 'right' }}
+          />
         </div>
+      </div>
 
-        <button
-          type="submit"
-          disabled={loading || total <= 0}
-          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          {loading ? '처리 중...' : '결제하기'}
+      <div className="btn-group" style={{ marginTop: '10px' }}>
+        <button type="submit" className="btn" disabled={loading}>
+          {loading ? '전송중...' : '결재하기'}
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   )
 }
