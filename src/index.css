@@ -97,12 +97,14 @@
   .form-flex {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 5px;
   }
 
   .form-flex > div {
     flex: 1;
+    min-width: 130px;
   }
 
   .form-flex > .divider {

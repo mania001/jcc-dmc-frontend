@@ -41,7 +41,7 @@ export default function OfferingTable({ data, loading }: Props) {
               <tr key={row.id}>
                 <td>{formatDate(row.created_at)}</td>
                 <td>{row.name}</td>
-                <td>{row.jumin1}-******</td>
+                <td>{row.jumin1}{row.jumin2 ? `-${row.jumin2}` : '-******'}</td>
                 <td>{row.email ?? ''}</td>
                 <td className="right">{row.tithe ? fmt(row.tithe) : ''}</td>
                 <td className="right">{row.thanks ? fmt(row.thanks) : ''}</td>

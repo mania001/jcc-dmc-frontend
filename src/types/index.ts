@@ -1,11 +1,12 @@
-export type PayType = 'card' | 'mobile'
+export type PayType = 'card' | 'mobile' | 'easyPay' | 'giftCertificate' | 'transfer'
 export type OfferingStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
 export interface Offering {
   id: number
-  pay_type: PayType
+  pay_type: PayType | null
   name: string
   jumin1: string
+  jumin2: string | null
   email: string | null
   tithe: number
   thanks: number
@@ -37,7 +38,7 @@ export interface ListResponse {
 }
 
 export interface CreateOfferingBody {
-  pay_type: PayType
+  pay_type?: PayType
   name: string
   jumin1: string
   jumin2: string
