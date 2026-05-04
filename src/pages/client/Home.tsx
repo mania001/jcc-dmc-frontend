@@ -136,7 +136,7 @@ export default function Home() {
           )}
         </div>
         <div className="divider">-</div>
-        <div className="form-group" style={{ marginTop: '0.56em' }}>
+        <div className="form-group mt-[0.56em]">
           <label>&nbsp;</label>
           <input
             type="password"
@@ -173,7 +173,7 @@ export default function Home() {
               step={1}
               {...register(key, { min: 0 })}
               onBlur={handleAmountBlur}
-              style={{ textAlign: 'right' }}
+              className="text-right"
             />
           </div>
         ))}
@@ -190,7 +190,7 @@ export default function Home() {
               step={1}
               {...register(key, { min: 0 })}
               onBlur={handleAmountBlur}
-              style={{ textAlign: 'right' }}
+              className="text-right"
             />
           </div>
         ))}
@@ -200,12 +200,12 @@ export default function Home() {
             type="number"
             value={calcTotal()}
             readOnly
-            style={{ textAlign: 'right' }}
+            className="text-right"
           />
         </div>
       </div>
 
-      <div className="btn-group" style={{ marginTop: '10px' }}>
+      <div className="btn-group mt-2.5">
         <button type="submit" className="btn" disabled={loading}>
           {loading ? '전송중...' : '결재하기'}
         </button>

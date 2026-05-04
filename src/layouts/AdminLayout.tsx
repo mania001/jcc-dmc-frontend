@@ -11,27 +11,15 @@ export default function AdminLayout() {
   }
 
   return (
-    <div style={{ background: '#e9ecef', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <header style={{
-        width: '100%',
-        height: '50px',
-        background: '#fff',
-        borderBottom: '1px solid rgba(0,0,0,0.12)',
-        position: 'fixed',
-        zIndex: 100,
-        boxShadow: '0 3px 5px -1px rgba(0,0,0,0.2), 0 5px 8px 0 rgba(0,0,0,0.14), 0 1px 14px 0 rgba(0,0,0,0.12)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 20px',
-      }}>
-        <h1 style={{ fontSize: '18px', color: '#333', margin: 0 }}>JCC 인터넷 헌금 서비스</h1>
+    <div className="bg-[#e9ecef] min-h-screen flex flex-col items-center">
+      <header className="w-full h-12.5 bg-white border-b border-black/12 fixed z-100 flex items-center justify-between px-5 shadow-[0_3px_5px_-1px_rgba(0,0,0,0.2),0_5px_8px_0_rgba(0,0,0,0.14),0_1px_14px_0_rgba(0,0,0,0.12)]">
+        <h1 className="text-lg text-[#333] m-0">JCC 인터넷 헌금 서비스</h1>
         <nav>
-          <ul style={{ display: 'flex', listStyle: 'none', margin: 0, padding: 0, gap: '20px', alignItems: 'center' }}>
+          <ul className="flex list-none m-0 p-0 gap-5 items-center">
             <li>
               <button
                 onClick={handleLogout}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#333', fontSize: '14px', fontFamily: 'inherit' }}
+                className="bg-transparent border-none cursor-pointer text-[#333] text-sm font-[inherit]"
               >
                 로그아웃
               </button>
@@ -39,15 +27,7 @@ export default function AdminLayout() {
           </ul>
         </nav>
       </header>
-      <main style={{
-        width: '1140px',
-        maxWidth: '100%',
-        marginTop: '70px',
-        padding: '30px 30px 50px',
-        minHeight: '300px',
-        background: '#fff',
-        boxShadow: '0 0 8px 0 rgba(0,0,0,0.2)',
-      }}>
+      <main className="w-285 max-w-full mt-17.5 px-7.5 pt-7.5 pb-12.5 min-h-75 bg-white shadow-[0_0_8px_0_rgba(0,0,0,0.2)]">
         <Outlet />
       </main>
     </div>
