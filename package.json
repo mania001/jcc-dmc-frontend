@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "infra:deploy": "bash infra/deploy.sh",
+    "predeploy": "npm run build",
+    "deploy": "aws s3 sync ./dist s3://jcc-dmc-frontend --profile serverless-deployer --delete --cache-control max-age=31536000 --exclude index.html && aws s3 cp ./dist/index.html s3://jcc-dmc-frontend/index.html --profile serverless-deployer --cache-control no-cache,no-store,must-revalidate && aws cloudfront create-invalidation --distribution-id $(aws cloudformation describe-stacks --stack-name jcc-dmc-frontend --profile serverless-deployer --region ap-northeast-2 --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontDistributionId`].OutputValue' --output text) --paths '/*' --profile serverless-deployer"
   },
   "dependencies": {
     "@tosspayments/tosspayments-sdk": "^2.7.0",
