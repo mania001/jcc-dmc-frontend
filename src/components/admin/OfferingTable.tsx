@@ -1,19 +1,14 @@
 import type { Offering, ListResponse } from '@/types'
 import { formatDate } from '@/utils'
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: '대기',
-  PROCESSING: '처리중',
-  COMPLETED: '완료',
-  FAILED: '실패',
-}
-
-const HEADERS = ['날짜', '이름', '주민번호', '메일', '십일조', '감사', '건축', '선교', '구제', '합계', '상태']
+const HEADERS = ['날짜', '이름', '주민번호', '메일', '십일조', '감사', '건축', '선교', '구제', '합계']
 
 interface Props {
   data: ListResponse | null
   loading: boolean
 }
+
+const fmt = (n: number) => Number(n).toLocaleString('ko-KR')
 
 export default function OfferingTable({ data, loading }: Props) {
   return (
@@ -31,13 +26,13 @@ export default function OfferingTable({ data, loading }: Props) {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={11} className="leading-15 text-[#999]">
+              <td colSpan={10} className="leading-15 text-[#999]">
                 불러오는 중...
               </td>
             </tr>
           ) : !data || data.results.length === 0 ? (
             <tr>
-              <td colSpan={11} className="leading-15 text-[#999]">
+              <td colSpan={10} className="leading-15 text-[#999]">
                 no data
               </td>
             </tr>
@@ -48,13 +43,12 @@ export default function OfferingTable({ data, loading }: Props) {
                 <td>{row.name}</td>
                 <td>{row.jumin1}-******</td>
                 <td>{row.email ?? ''}</td>
-                <td className="right">{row.tithe ? row.tithe.toLocaleString() : ''}</td>
-                <td className="right">{row.thanks ? row.thanks.toLocaleString() : ''}</td>
-                <td className="right">{row.building ? row.building.toLocaleString() : ''}</td>
-                <td className="right">{row.mission ? row.mission.toLocaleString() : ''}</td>
-                <td className="right">{row.relief ? row.relief.toLocaleString() : ''}</td>
-                <td className="right result">{row.amount.toLocaleString()}</td>
-                <td>{STATUS_LABEL[row.status] ?? row.status}</td>
+                <td className="right">{row.tithe ? fmt(row.tithe) : ''}</td>
+                <td className="right">{row.thanks ? fmt(row.thanks) : ''}</td>
+                <td className="right">{row.building ? fmt(row.building) : ''}</td>
+                <td className="right">{row.mission ? fmt(row.mission) : ''}</td>
+                <td className="right">{row.relief ? fmt(row.relief) : ''}</td>
+                <td className="right result">{fmt(row.amount)}</td>
               </tr>
             ))
           )}

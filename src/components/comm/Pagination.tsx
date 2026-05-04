@@ -18,37 +18,55 @@ export default function Pagination({ page, total, postsPerPage, onChange }: Prop
     }
   }
 
-  const btnClass = (active?: boolean, disabled?: boolean) =>
-    [
-      'py-1 px-2.5 mx-0.5 border rounded-sm text-[13px] font-[inherit]',
-      active ? 'border-[#4caf50] bg-[#4caf50] text-white' : 'border-[#ccc] bg-white',
-      disabled ? 'text-[#ccc] cursor-not-allowed' : !active ? 'text-[#333] cursor-pointer' : '',
-    ]
-      .filter(Boolean)
-      .join(' ')
+  const base = 'w-[30px] h-[30px] border border-[#e2e2e2] flex justify-center items-center text-base font-[inherit] -ml-px'
+  const normal = 'text-[#424242] cursor-pointer bg-white hover:bg-[#f5f5f5]'
+  const active = 'bg-[#424242] text-white cursor-default'
+  const disabled = 'text-[#ccc] cursor-not-allowed bg-white'
+
+  const cls = (isActive?: boolean, isDisabled?: boolean) =>
+    `${base} ${isActive ? active : isDisabled ? disabled : normal}`
 
   return (
-    <div className="flex justify-center mt-2.5 flex-wrap gap-0.5">
-      <button className={btnClass(false, page === 1)} disabled={page === 1} onClick={() => onChange(page - 1)}>
+    <div className="flex justify-center mt-4">
+      {/* 처음 */}
+      <button
+        className={`${cls(false, page === 1)} ml-0 rounded-l-[5px]`}
+        disabled={page === 1}
+        onClick={() => onChange(1)}
+      >
+        «
+      </button>
+      {/* 이전 */}
+      <button className={cls(false, page === 1)} disabled={page === 1} onClick={() => onChange(page - 1)}>
         ‹
       </button>
+      {/* 페이지 번호 */}
       {pages.map((p, i) =>
         p === '...' ? (
-          <span key={`e${i}`} className="py-1 px-1.5 text-[13px] text-[#999]">
+          <span key={`e${i}`} className={`${base} text-[#999] cursor-default bg-white`}>
             …
           </span>
         ) : (
-          <button key={p} className={btnClass(p === page)} onClick={() => onChange(p as number)}>
+          <button key={p} className={cls(p === page)} onClick={() => onChange(p as number)}>
             {p}
           </button>
         )
       )}
+      {/* 다음 */}
       <button
-        className={btnClass(false, page === totalPage)}
+        className={cls(false, page === totalPage)}
         disabled={page === totalPage}
         onClick={() => onChange(page + 1)}
       >
         ›
+      </button>
+      {/* 맨끝 */}
+      <button
+        className={`${cls(false, page === totalPage)} rounded-r-[5px]`}
+        disabled={page === totalPage}
+        onClick={() => onChange(totalPage)}
+      >
+        »
       </button>
     </div>
   )

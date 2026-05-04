@@ -1,9 +1,21 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+
+const today = new Date()
+const thisYear = today.getFullYear()
+const yearOptions = Array.from({ length: thisYear - 2000 }, (_, i) => String(thisYear - i))
+
+function getDefaultYear() {
+  const now = new Date()
+  return now.getMonth() > 5 ? String(now.getFullYear()) : String(now.getFullYear() - 1)
+}
 
 export default function AdminLayout() {
   const { signOut } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const year = searchParams.get('year') ?? getDefaultYear()
 
   const handleLogout = () => {
     signOut()
@@ -16,6 +28,19 @@ export default function AdminLayout() {
         <h1 className="text-lg text-[#333] m-0">JCC 인터넷 헌금 서비스</h1>
         <nav>
           <ul className="flex list-none m-0 p-0 gap-5 items-center">
+            <li>
+              <select
+                value={year}
+                onChange={(e) => setSearchParams((prev) => { const next = new URLSearchParams(prev); next.set('year', e.target.value); return next })}
+                className="py-1 px-1.5 border border-[#ccc] rounded text-[13px] font-[inherit] w-22.5"
+              >
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>
+                    {y}년
+                  </option>
+                ))}
+              </select>
+            </li>
             <li>
               <button
                 onClick={handleLogout}

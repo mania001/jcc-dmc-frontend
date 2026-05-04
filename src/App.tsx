@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import { AuthProvider } from '@/context/AuthProvider'
 import PrivateRoute from '@/routers/PrivateRoute'
 import ClientLayout from '@/layouts/ClientLayout'
@@ -12,6 +13,7 @@ import List from '@/pages/admin/List'
 export default function App() {
   return (
     <AuthProvider>
+      <Toaster richColors position="top-center" />
       <BrowserRouter>
         <Routes>
           {/* 클라이언트 */}

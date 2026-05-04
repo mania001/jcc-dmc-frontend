@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useRef, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { loadTossPayments } from '@tosspayments/sdk'
+import { toast } from 'sonner'
 import { createOffering } from '@/services/offeringService'
 import { generateOrderId } from '@/utils'
 import type { CreateOfferingBody, PayType } from '@/types'
@@ -30,32 +31,36 @@ const ssnCheck = (ssn1: string, ssn2: string) => {
 
 export default function Home() {
   const [loading, setLoading] = useState(false)
-  const { register, handleSubmit, getValues, setValue, formState: { errors } } = useForm<FormData>({
+  const jumin2Ref = useRef<HTMLInputElement>(null)
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<FormData>({
     defaultValues: { pay_type: 'card', tithe: '', thanks: '', building: '', mission: '', relief: '' },
   })
 
-  const calcTotal = () => {
-    const { tithe, thanks, building, mission, relief } = getValues()
-    return [tithe, thanks, building, mission, relief].reduce((sum, v) => sum + (parseInt(v) || 0), 0)
-  }
+  const watched = useWatch({ control, name: ['tithe', 'thanks', 'building', 'mission', 'relief'] })
+  const total = watched.reduce((sum, v) => sum + (parseInt(v ?? '') || 0), 0)
 
-  const handleAmountBlur = () => {
-    setValue('tithe', getValues('tithe'))
-    const total = calcTotal()
-    setValue('relief', getValues('relief'))
-    return total
-  }
+  const jumin1Reg = register('jumin1', {
+    required: '주민번호를 입력해주세요.',
+    pattern: { value: /^\d{6}$/, message: '숫자 6자리를 입력하세요' },
+  })
+  const { ref: jumin2RegRef, ...jumin2Rest } = register('jumin2', {
+    required: '주민번호를 입력해주세요.',
+    pattern: { value: /^\d{7}$/, message: '숫자 7자리를 입력하세요' },
+  })
 
   const onSubmit = async (data: FormData) => {
-    const total = calcTotal()
-
     if (!ssnCheck(data.jumin1, data.jumin2)) {
-      alert('주민번호를 정확히 입력해주세요.')
+      toast.error('주민번호를 정확히 입력해주세요.')
       return
     }
 
     if (total <= 0) {
-      alert('헌금 금액을 1원 이상 입력해 주세요.')
+      toast.error('헌금 금액을 1원 이상 입력해 주세요.')
       return
     }
 
@@ -94,13 +99,12 @@ export default function Home() {
       }
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code ?? ''
-      // 사용자가 직접 취소한 경우 알림 없이 처리
       if (code === 'PAY_PROCESS_CANCELED' || code === 'PAYMENT_WINDOW_IS_NOT_OPENED') {
         setLoading(false)
         return
       }
       console.error(err)
-      alert('결제 요청 중 오류가 발생했습니다.')
+      toast.error('결제 요청 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -120,33 +124,31 @@ export default function Home() {
       </div>
 
       {/* 주민번호 */}
-      <div className="form-flex">
-        <div className="form-group required">
-          <label>주민번호(연말정산용)</label>
+      <div className="form-group required">
+        <label>주민번호(연말정산용)</label>
+        <div className="flex items-center gap-1.25">
           <input
             type="text"
             maxLength={6}
-            {...register('jumin1', {
-              required: '주민번호를 입력해주세요.',
-              pattern: { value: /^\d{6}$/, message: '숫자 6자리를 입력하세요' },
-            })}
+            className="flex-1 min-w-0"
+            {...jumin1Reg}
+            onChange={(e) => {
+              jumin1Reg.onChange(e)
+              if (e.target.value.length === 6) jumin2Ref.current?.focus()
+            }}
           />
-          {(errors.jumin1 || errors.jumin2) && (
-            <p className="error-message">{errors.jumin1?.message || errors.jumin2?.message}</p>
-          )}
-        </div>
-        <div className="divider">-</div>
-        <div className="form-group mt-[0.56em]">
-          <label>&nbsp;</label>
+          <span className="text-[#666]">-</span>
           <input
             type="password"
             maxLength={7}
-            {...register('jumin2', {
-              required: '주민번호를 입력해주세요.',
-              pattern: { value: /^\d{7}$/, message: '숫자 7자리를 입력하세요' },
-            })}
+            className="flex-1 min-w-0"
+            {...jumin2Rest}
+            ref={(el) => { jumin2RegRef(el); jumin2Ref.current = el }}
           />
         </div>
+        {(errors.jumin1 || errors.jumin2) && (
+          <p className="error-message">{errors.jumin1?.message || errors.jumin2?.message}</p>
+        )}
       </div>
 
       {/* 이메일 */}
@@ -155,7 +157,10 @@ export default function Home() {
         <input
           type="text"
           {...register('email', {
-            pattern: { value: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/, message: '이메일을 정확히 입력해주세요.' },
+            pattern: {
+              value: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+              message: '이메일을 정확히 입력해주세요.',
+            },
           })}
           placeholder="선택사항입니다."
         />
@@ -167,14 +172,7 @@ export default function Home() {
         {(['tithe', 'thanks', 'building'] as const).map((key, i) => (
           <div className="form-group" key={key}>
             <label>{['십일조', '감사헌금', '건축헌금'][i]}</label>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              {...register(key, { min: 0 })}
-              onBlur={handleAmountBlur}
-              className="text-right"
-            />
+            <input type="number" min={0} step={1} {...register(key, { min: 0 })} className="text-right" />
           </div>
         ))}
       </div>
@@ -184,24 +182,12 @@ export default function Home() {
         {(['mission', 'relief'] as const).map((key, i) => (
           <div className="form-group" key={key}>
             <label>{['선교헌금', '153구제헌금'][i]}</label>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              {...register(key, { min: 0 })}
-              onBlur={handleAmountBlur}
-              className="text-right"
-            />
+            <input type="number" min={0} step={1} {...register(key, { min: 0 })} className="text-right" />
           </div>
         ))}
         <div className="form-group required">
           <label>총계</label>
-          <input
-            type="number"
-            value={calcTotal()}
-            readOnly
-            className="text-right"
-          />
+          <input type="number" value={total} readOnly className="text-right" />
         </div>
       </div>
 
