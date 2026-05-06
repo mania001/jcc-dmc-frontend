@@ -1,7 +1,7 @@
 import type { Offering, ListResponse } from '@/types'
 import { formatDate } from '@/utils'
 
-const HEADERS = ['날짜', '이름', '주민번호', '메일', '십일조', '감사', '건축', '선교', '구제', '합계']
+const HEADERS = ['날짜', '이름', '주민번호', '메일', '결제', '십일조', '감사', '건축', '선교', '구제', '합계']
 
 interface Props {
   data: ListResponse | null
@@ -17,7 +17,7 @@ export default function OfferingTable({ data, loading }: Props) {
         <thead>
           <tr>
             {HEADERS.map((h) => (
-              <th key={h}>
+              <th key={h} style={h === '결제' ? { minWidth: '72px', whiteSpace: 'nowrap' } : undefined}>
                 <span>{h}</span>
               </th>
             ))}
@@ -26,13 +26,13 @@ export default function OfferingTable({ data, loading }: Props) {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={10} className="leading-15 text-[#999]">
+              <td colSpan={11} className="leading-15 text-[#999]">
                 불러오는 중...
               </td>
             </tr>
           ) : !data || data.results.length === 0 ? (
             <tr>
-              <td colSpan={10} className="leading-15 text-[#999]">
+              <td colSpan={11} className="leading-15 text-[#999]">
                 no data
               </td>
             </tr>
@@ -41,8 +41,12 @@ export default function OfferingTable({ data, loading }: Props) {
               <tr key={row.id}>
                 <td>{formatDate(row.created_at)}</td>
                 <td>{row.name}</td>
-                <td>{row.jumin1}{row.jumin2 ? `-${row.jumin2}` : '-******'}</td>
+                <td>
+                  {row.jumin1}
+                  {row.jumin2 ? `-${row.jumin2}` : '-******'}
+                </td>
                 <td>{row.email ?? ''}</td>
+                <td>{row.pay_type ?? '-'}</td>
                 <td className="right">{row.tithe ? fmt(row.tithe) : ''}</td>
                 <td className="right">{row.thanks ? fmt(row.thanks) : ''}</td>
                 <td className="right">{row.building ? fmt(row.building) : ''}</td>

@@ -24,6 +24,7 @@ export const listOfferings = async (query: ListQuery): Promise<ListResponse> => 
   if (query.name) params.name = query.name
   if (query.ssn) params.ssn = query.ssn
   if (query.email) params.email = query.email
+  if (query.payType) params.payType = query.payType
 
   const { data } = await api.get('/offerings', { params })
   return data.message

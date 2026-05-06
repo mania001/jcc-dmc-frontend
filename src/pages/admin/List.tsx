@@ -22,6 +22,7 @@ export default function List() {
   const year = searchParams.get('year') ?? getDefaultYear()
   const page = Number(searchParams.get('page') ?? 1)
   const pageSize = Number(searchParams.get('size') ?? PAGE_SIZE)
+  const payType = searchParams.get('payType') ?? ''
   const applied: SearchState = {
     name: searchParams.get('name') ?? '',
     ssn: searchParams.get('ssn') ?? '',
@@ -73,10 +74,10 @@ export default function List() {
   }, [year, setSearchParams])
 
   useEffect(() => {
-    fetchList({ year, page, size: pageSize, ...applied, isPage })
+    fetchList({ year, page, size: pageSize, ...applied, payType: payType || undefined, isPage })
   // applied는 searchParams 파생 원시값이므로 개별 필드로 의존성 관리
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, page, pageSize, applied.name, applied.ssn, applied.email, isPage, fetchList])
+  }, [year, page, pageSize, applied.name, applied.ssn, applied.email, payType, isPage, fetchList])
 
   const handleSearch = () => {
     setSearchParams((prev) => {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { login } from '@/services/authService'
 import type { LoginBody } from '@/types'
@@ -9,7 +9,9 @@ export default function Login() {
   const { register, handleSubmit, setError, formState: { errors } } = useForm<LoginBody>()
   const { signIn } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(false)
+  const isExpired = searchParams.get('expired') === '1'
 
   const onSubmit = async (data: LoginBody) => {
     if (loading) return
@@ -32,6 +34,9 @@ export default function Login() {
           <h4 className="text-[36px] text-[#343a40] m-0">LOGIN</h4>
         </div>
         <div className="px-8 pt-6.25 pb-12">
+          {isExpired && (
+            <p className="mb-4 text-sm text-center text-[#cf000f]">세션이 만료되었습니다. 다시 로그인해 주세요.</p>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="form-group mb-5">
               <label>아이디</label>

@@ -1,4 +1,13 @@
-export type PayType = 'card' | 'mobile' | 'easyPay' | 'giftCertificate' | 'transfer'
+export type PayType =
+  | '카드'
+  | '휴대폰'
+  | '계좌이체'
+  | '가상계좌'
+  | '간편결제'
+  | '문화상품권'
+  | '도서문화상품권'
+  | '게임문화상품권'
+
 export type OfferingStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
 export interface Offering {
@@ -63,5 +72,6 @@ export interface ListQuery {
   name?: string
   ssn?: string
   email?: string
+  payType?: string
   isPage?: boolean
 }

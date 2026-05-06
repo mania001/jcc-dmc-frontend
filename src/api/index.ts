@@ -18,7 +18,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      window.location.href = '/login?expired=1'
+      return new Promise(() => {}) // 리다이렉트 후 각 catch 블록 실행 방지
     }
     return Promise.reject(error)
   }
