@@ -30,6 +30,15 @@ export const listOfferings = async (query: ListQuery): Promise<ListResponse> => 
   return data.message
 }
 
+export const failPayment = async (body: {
+  orderId: string
+  paymentKey?: string
+  errorCode?: string
+  errorMessage?: string
+}): Promise<void> => {
+  await api.post('/offering/fail', body)
+}
+
 export const updateOfferingStatus = async (orderId: string, status: string): Promise<void> => {
   await api.patch(`/offering/${orderId}`, { status })
 }
