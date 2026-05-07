@@ -20,6 +20,7 @@ type FormData = {
   building: string
   mission: string
   relief: string
+  contents: string
 }
 
 interface OrderInfo {
@@ -135,6 +136,7 @@ export default function Home() {
         building: parseInt(data.building) || 0,
         mission: parseInt(data.mission) || 0,
         relief: parseInt(data.relief) || 0,
+        contents: data.contents || undefined,
         order_id: id,
       }
       await createOffering(body)
@@ -278,6 +280,12 @@ export default function Home() {
           <label>총계</label>
           <input type="number" value={total} readOnly className="text-right" />
         </div>
+      </div>
+
+      {/* 감사내용 */}
+      <div className="form-group">
+        <label>감사내용</label>
+        <textarea {...register('contents')} rows={3} />
       </div>
 
       <div className="btn-group mt-2.5">

@@ -57,6 +57,7 @@ export interface CreateOfferingBody {
   building?: number
   mission?: number
   relief?: number
+  contents?: string
   order_id: string
 }
 

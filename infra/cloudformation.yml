@@ -7,6 +7,12 @@ Description: JCC DMC Frontend - S3 + CloudFront
 #   나중: 두 값 채워서 업데이트하면 커스텀 도메인 적용
 # -------------------------------------------------------
 Parameters:
+  Stage:
+    Type: String
+    Default: 'prod'
+    AllowedValues: [dev, prod]
+    Description: '배포 스테이지 (dev / prod)'
+
   DomainName:
     Type: String
     Default: ''
@@ -34,7 +40,7 @@ Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: jcc-dmc-frontend
+      BucketName: !Sub 'jcc-dmc-frontend-${Stage}'
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -46,7 +52,7 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: jcc-dmc-frontend-oac
+        Name: !Sub 'jcc-dmc-frontend-${Stage}-oac'
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -74,7 +80,7 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
-        Comment: JCC DMC Frontend
+        Comment: !Sub 'JCC DMC Frontend (${Stage})'
         DefaultRootObject: index.html
         HttpVersion: http2and3
         PriceClass: PriceClass_200  # 한국 포함 (아시아 + 미국/유럽)
