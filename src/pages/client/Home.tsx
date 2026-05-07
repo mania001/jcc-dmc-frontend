@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { loadTossPayments, ANONYMOUS } from '@tosspayments/tosspayments-sdk'
 import type { TossPaymentsWidgets } from '@tosspayments/tosspayments-sdk'
@@ -39,6 +40,10 @@ const ssnCheck = (ssn1: string, ssn2: string) => {
 type Step = 'form' | 'payment'
 
 export default function Home() {
+  const [searchParams] = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
+  if (returnUrl) sessionStorage.setItem('jcc_return_url', returnUrl)
+
   const [step, setStep] = useState<Step>('form')
   const [submitting, setSubmitting] = useState(false)
   const [paying, setPaying] = useState(false)

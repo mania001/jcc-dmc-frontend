@@ -16,6 +16,14 @@ export default function Success() {
   const isValid = !!(paymentKey && orderId && amountStr)
 
   const customerName = sessionStorage.getItem('jcc_customer_name') ?? ''
+  const returnUrl = sessionStorage.getItem('jcc_return_url')
+  const isPopup = !!(window.opener && !window.opener.closed)
+
+  const goBack = () => {
+    sessionStorage.removeItem('jcc_return_url')
+    if (returnUrl) window.location.href = returnUrl
+    else navigate('/')
+  }
 
   const [status, setStatus] = useState<Status>(isValid ? 'loading' : 'error')
   const called = useRef(false)
@@ -46,9 +54,10 @@ export default function Success() {
         <h3 className="mb-4">결제 오류</h3>
         <p>결제 처리 중 오류가 발생했습니다.</p>
         <div className="btn-group mt-5">
-          <button className="btn" onClick={() => navigate('/')}>
-            다시 시도
-          </button>
+          {isPopup
+            ? <button className="btn" onClick={() => window.close()}>닫기</button>
+            : <button className="btn" onClick={goBack}>{returnUrl ? '돌아가기' : '다시 시도'}</button>
+          }
         </div>
       </div>
     )
@@ -77,9 +86,10 @@ export default function Success() {
         당신이 심은것에 100배를 보상하십니다.
       </p>
       <div className="btn-group mt-5">
-        <button className="btn" onClick={() => navigate('/')}>
-          다시 헌금하기
-        </button>
+        {isPopup
+          ? <button className="btn" onClick={() => window.close()}>확인</button>
+          : <button className="btn" onClick={goBack}>{returnUrl ? '돌아가기' : '다시 헌금하기'}</button>
+        }
       </div>
     </div>
   )
